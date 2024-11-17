@@ -90,19 +90,20 @@ button:hover {
 /* Container do vídeo */
 .video-container {
     position: relative;
-    flex: 2;
+    flex: 3; /* Aumentar espaço para o vídeo */
+    width: 600px;
+    height: 1067px; /* Proporção para vídeos verticais */
     border: 1px solid #ced4da;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     background-color: #ffffff;
-    
 }
 
 #videoElement,
 #videoCanvas {
     width: 100%;
-    height: auto;
+    height: 100%;
     border-radius: 12px;
 }
 
@@ -113,17 +114,33 @@ button:hover {
     pointer-events: none;
 }
 
+/* Texto arrastável */
+#draggableText {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    color: white;
+    font-size: 30px;
+    font-family: Arial, sans-serif;
+    cursor: move;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px;
+    border-radius: 8px;
+    user-select: none;
+    z-index: 10;
+}
+
 /* Controles laterais aprimorados */
 .controls-container {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 20px;
+    max-width: 250px;
+    padding: 15px;
     border: 1px solid #ced4da;
     border-radius: 12px;
     background-color: #ffffff;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    position: sticky; /* Tornar a seção fixa */
+    top: 20px; /* Espaço do topo da página */
 }
 
 .controls-container h2 {
@@ -131,17 +148,6 @@ button:hover {
     color: #007bff;
     text-align: center;
     margin-bottom: 10px;
-}
-
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.control-group label {
-    font-size: 0.9rem;
-    color: #555;
 }
 
 /* Inputs e Seletores */
@@ -177,6 +183,28 @@ button:hover {
 }
 
 /* Botões de ação */
+/* Botões de ação */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    align-items: center;
+}
+
+#startButton,
+#exportButton {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Estilo do botão "Iniciar Edição" */
 #startButton {
     background-color: #28a745;
     color: #fff;
@@ -184,8 +212,10 @@ button:hover {
 
 #startButton:hover {
     background-color: #218838;
+    transform: translateY(-2px);
 }
 
+/* Estilo do botão "Exportar Vídeo" */
 #exportButton {
     background-color: #007bff;
     color: #fff;
@@ -193,13 +223,35 @@ button:hover {
 
 #exportButton:hover {
     background-color: #0056b3;
+    transform: translateY(-2px);
 }
+
+#draggableText {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    color: white;
+    font-size: 30px;
+    font-family: Arial, sans-serif;
+    cursor: move;
+    background: rgba(0, 0, 0, 0.5); /* Cor de fundo inicial */
+    padding: 5px 10px;
+    border-radius: 8px;
+    user-select: none;
+    z-index: 10;
+}
+
 
 /* Responsividade */
 @media (max-width: 768px) {
     .editor-container {
         flex-direction: column;
         align-items: center;
+    }
+
+    .video-container {
+        width: 100%;
+        height: auto;
     }
 
     .controls-container {

@@ -2,30 +2,22 @@
 const videoInput = document.getElementById("videoInput");
 const videoElement = document.getElementById("videoElement");
 const videoCanvas = document.getElementById("videoCanvas");
-const textInput = document.getElementById("textInput");
+const draggableText = document.getElementById("draggableText");
 const fontSizeInput = document.getElementById("fontSize");
 const fontColorInput = document.getElementById("fontColor");
 const fontFamilyInput = document.getElementById("fontFamily");
+const backgroundColorInput = document.getElementById("backgroundColor");
 const startButton = document.getElementById("startButton");
 const exportButton = document.getElementById("exportButton");
-const playButton = document.getElementById("playButton");
-const pauseButton = document.getElementById("pauseButton");
-const stopButton = document.getElementById("stopButton");
 
 const context = videoCanvas.getContext("2d");
-let userText = "";
-let fontSize = 30;
-let fontColor = "#ffffff";
-let fontFamily = "Arial";
 let mediaRecorder;
 let recordedChunks = [];
 
-// Variáveis para posicionar o texto
-let textX = 150;
-let textY = 850;
-let isDraggingText = false;
-let offsetX = 0;
-let offsetY = 0;
+// Variáveis para arrastar o texto
+let isDragging = false;
+let startX, startY, initialX, initialY;
+let textX = 100, textY = 100;
 
 // Carregar o vídeo
 videoInput.addEventListener("change", (event) => {
@@ -36,97 +28,95 @@ videoInput.addEventListener("change", (event) => {
         videoElement.addEventListener("loadedmetadata", () => {
             videoCanvas.width = videoElement.videoWidth;
             videoCanvas.height = videoElement.videoHeight;
+            drawTextOnVideo();
         });
     }
 });
 
-// Atualizar o texto, tamanho da fonte, cor e tipo de fonte
-textInput.addEventListener("input", (event) => {
-    userText = event.target.value;
-    drawTextOnVideo();
+// Eventos de arraste para o texto
+draggableText.addEventListener("mousedown", (event) => {
+    isDragging = true;
+    startX = event.clientX;
+    startY = event.clientY;
+    initialX = draggableText.offsetLeft;
+    initialY = draggableText.offsetTop;
 });
 
-fontSizeInput.addEventListener("input", (event) => {
-    fontSize = event.target.value;
-    drawTextOnVideo();
-});
-
-fontColorInput.addEventListener("input", (event) => {
-    fontColor = event.target.value;
-    drawTextOnVideo();
-});
-
-fontFamilyInput.addEventListener("change", (event) => {
-    fontFamily = event.target.value;
-    drawTextOnVideo();
-});
-
-// Eventos para arrastar o texto
-videoCanvas.addEventListener("mousedown", (event) => {
-    const rect = videoCanvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-
-    // Definir a área de clique ao redor do texto
-    context.font = `${fontSize}px ${fontFamily}`;
-    const textWidth = context.measureText(userText).width;
-    const textHeight = fontSize;
-
-    // Verificar se o clique está dentro da área do texto
-    if (
-        mouseX >= textX - textWidth / 2 &&
-        mouseX <= textX + textWidth / 2 &&
-        mouseY >= textY - textHeight / 2 &&
-        mouseY <= textY + textHeight / 2
-    ) {
-        isDraggingText = true;
-        offsetX = mouseX - textX;
-        offsetY = mouseY - textY;
+document.addEventListener("mousemove", (event) => {
+    if (isDragging) {
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        draggableText.style.left = `${initialX + dx}px`;
+        draggableText.style.top = `${initialY + dy}px`;
+        textX = draggableText.offsetLeft + draggableText.clientWidth / 2;
+        textY = draggableText.offsetTop + draggableText.clientHeight / 2;
+        drawTextOnVideo();
     }
 });
 
-videoCanvas.addEventListener("mousemove", (event) => {
-    if (isDraggingText) {
-        const rect = videoCanvas.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-
-        // Atualizar a posição do texto
-        textX = mouseX - offsetX;
-        textY = mouseY - offsetY;
-
-        drawTextOnVideo(); // Redesenhar para atualizar a posição do texto
-    }
+document.addEventListener("mouseup", () => {
+    isDragging = false;
 });
 
-videoCanvas.addEventListener("mouseup", () => {
-    isDraggingText = false;
+// Atualizar o estilo do texto
+fontSizeInput.addEventListener("input", () => {
+    draggableText.style.fontSize = `${fontSizeInput.value}px`;
+    drawTextOnVideo();
 });
 
-videoCanvas.addEventListener("mouseleave", () => {
-    isDraggingText = false;
+fontColorInput.addEventListener("input", () => {
+    draggableText.style.color = fontColorInput.value;
+    drawTextOnVideo();
+});
+
+fontFamilyInput.addEventListener("change", () => {
+    draggableText.style.fontFamily = fontFamilyInput.value;
+    drawTextOnVideo();
+});
+
+backgroundColorInput.addEventListener("input", () => {
+    draggableText.style.backgroundColor = backgroundColorInput.value;
+    drawTextOnVideo();
 });
 
 // Função para renderizar o texto no vídeo
 function drawTextOnVideo() {
+    draggableText.style.visibility = "none";
+
     context.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
     context.drawImage(videoElement, 0, 0, videoCanvas.width, videoCanvas.height);
 
     // Configurar o estilo do texto
+    const fontSize = fontSizeInput.value;
+    const fontColor = fontColorInput.value;
+    const fontFamily = fontFamilyInput.value;
+    const backgroundColor = backgroundColorInput.value;
+
+    // Adicionar fundo ao texto
+    context.fillStyle = backgroundColor;
+    const textWidth = context.measureText(draggableText.textContent).width;
+    const textHeight = parseInt(fontSize, 10);
+    context.fillRect(textX - textWidth / 2 - 10, textY - textHeight, textWidth + 20, textHeight + 10);
+
+    // Adicionar o texto
     context.fillStyle = fontColor;
     context.font = `${fontSize}px ${fontFamily}`;
     context.textAlign = "center";
-    context.fillText(userText, textX, textY);
+    context.fillText(draggableText.textContent, textX, textY);
+
+    draggableText.style.visibility = "visible";
 
     if (!videoElement.paused && !videoElement.ended) {
         requestAnimationFrame(drawTextOnVideo);
     }
 }
 
-// Iniciar a gravação e renderização do vídeo
+// Iniciar a gravação
 startButton.addEventListener("click", () => {
+    draggableText.style.display = "none";
     const videoStream = videoCanvas.captureStream(30);
     const audioStream = videoElement.captureStream().getAudioTracks();
+
     audioStream.forEach((track) => videoStream.addTrack(track));
 
     mediaRecorder = new MediaRecorder(videoStream, { mimeType: "video/webm; codecs=vp9" });
@@ -143,7 +133,7 @@ startButton.addEventListener("click", () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "video-com-texto.webm";
+        a.download = "video-editado-com-som.webm";
         a.click();
     };
 
@@ -152,17 +142,9 @@ startButton.addEventListener("click", () => {
     requestAnimationFrame(drawTextOnVideo);
 });
 
-// Exportar o vídeo gravado
+// Exportar o vídeo
 exportButton.addEventListener("click", () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
         mediaRecorder.stop();
     }
-});
-
-// Controle de Play, Pause e Stop
-playButton.addEventListener("click", () => videoElement.play());
-pauseButton.addEventListener("click", () => videoElement.pause());
-stopButton.addEventListener("click", () => {
-    videoElement.pause();
-    videoElement.currentTime = 0;
 });
